@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "type": "cppbuild",
+      "label": "Build",
+      "command": "/usr/bin/g++",
+      "args": [
+        "-fdiagnostics-color=always",
+        "-g",
+        "${file}",
+        "-o",
+        "${fileDirname}/${fileBasenameNoExtension}",
+        "-DDEBUG",
+        "-std=c++23",
+        "-I${workspaceFolder}/include"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
+      "problemMatcher": ["$gcc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ],
+  "version": "2.0.0"
+}

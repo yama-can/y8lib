@@ -53,8 +53,9 @@ public:
 
 	class iterator
 	{
+		Treap *treap;
 		node *now;
-		iterator(node *now) : now(now)
+		iterator(Treap *treap, node *now) : treap{treap}, now(now)
 		{
 		}
 		friend class Treap;
@@ -142,13 +143,26 @@ public:
 		{
 			return now != other.now;
 		}
-		operator T *() const
+		size_t indexof()
 		{
-			return &now->raw_value;
+			if(!now)
+				return treap->size();
+			size_t pos = 0;
+			node *now = this->now;
+			while (now)
+			{
+				if (now->parent && now->parent->left == now)
+				{
+					pos += now->parent->right ? now->parent->right->subtree_size + 1 : 1;
+				}
+				now = now->parent;
+			}
+			return pos;
 		}
-		operator const T *() const
+		long long operator-(iterator other)
 		{
-			return &now->raw_value;
+			assert(treap == other.treap);
+			return indexof() - other.indexof();
 		}
 	};
 
@@ -313,19 +327,19 @@ public:
 		{
 			now = now->left;
 		}
-		return iterator(now);
+		return iterator(this, now);
 	}
 
 	iterator end()
 	{
-		return iterator(nullptr);
+		return iterator(this, nullptr);
 	}
 
 	iterator find(size_t pos)
 	{
 		node *now = root;
 		find_node(now, pos);
-		return iterator(now);
+		return iterator(this, now);
 	}
 
 	size_t size() const

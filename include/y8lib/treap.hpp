@@ -51,6 +51,111 @@ public:
 	using value_type = T;
 	using size_type = size_t;
 
+	class iterator
+	{
+		node *now;
+		iterator(node *now) : now(now)
+		{
+		}
+		friend class Treap;
+
+	public:
+		iterator() = delete;
+		iterator(const iterator &other) = default;
+		iterator &operator=(const iterator &other) = default;
+		iterator(iterator &&other) = default;
+		iterator &operator=(iterator &&other) = default;
+		~iterator() = default;
+		iterator &operator++()
+		{
+			if (now->right)
+			{
+				now = now->right;
+				while (now->left)
+				{
+					now = now->left;
+				}
+			}
+			else
+			{
+				while (now->parent && now->parent->right == now)
+				{
+					now = now->parent;
+				}
+				now = now->parent;
+			}
+			return *this;
+		}
+		iterator operator++(int)
+		{
+			iterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+		iterator &operator--()
+		{
+			if (now->left)
+			{
+				now = now->left;
+				while (now->right)
+				{
+					now = now->right;
+				}
+			}
+			else
+			{
+				while (now->parent && now->parent->left == now)
+				{
+					now = now->parent;
+				}
+				now = now->parent;
+			}
+			return *this;
+		}
+		iterator operator--(int)
+		{
+			iterator tmp = *this;
+			--(*this);
+			return tmp;
+		}
+		T &operator*()
+		{
+			return now->raw_value;
+		}
+		const T &operator*() const
+		{
+			return now->raw_value;
+		}
+		T *operator->()
+		{
+			return &now->raw_value;
+		}
+		const T *operator->() const
+		{
+			return &now->raw_value;
+		}
+		bool operator==(const iterator &other) const
+		{
+			return now == other.now;
+		}
+		bool operator!=(const iterator &other) const
+		{
+			return now != other.now;
+		}
+		operator bool() const
+		{
+			return now != nullptr;
+		}
+		operator T *() const
+		{
+			return &now->raw_value;
+		}
+		operator const T *() const
+		{
+			return &now->raw_value;
+		}
+	};
+
 	Treap() : root(nullptr)
 	{
 	}
@@ -199,6 +304,28 @@ public:
 			}
 		}
 		return val;
+	}
+
+	iterator begin()
+	{
+		node *now = root;
+		while (now && now->left)
+		{
+			now = now->left;
+		}
+		return iterator(now);
+	}
+
+	iterator end()
+	{
+		return iterator(nullptr);
+	}
+
+	iterator find(size_t pos)
+	{
+		node *now = root;
+		find_node(now, pos);
+		return iterator(now);
 	}
 
 	size_t size() const

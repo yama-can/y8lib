@@ -30,7 +30,7 @@ Treap はランダムな値を各頂点に割り当て、その値を元にヒ�
 ### $insert(pos, value)$
 
 $pos$ 番目と $pos + 1$ 番目の間に $value$ を挿入します。
-ただし、$pos = size()$ のときは、最後に $value$ を挿入します。
+ただし、 $pos = size()$ のときは、最後に $value$ を挿入します。
 
 計算量： $\mathcal O(\log size())$
 
@@ -42,7 +42,7 @@ $pos$ 番目の要素を削除します。
 
 ### $prod(l, r)$
 
-$prod(l, r)$ を実行すると、$op(op(op(op(A_l, A_{l + 1}), A_{l + 2})\cdots A_{r-2}), A_r)$ を計算し、その値を返します。
+$prod(l, r)$ を実行すると、 $op(op(op(op(A_l, A_{l + 1}), A_{l + 2})\cdots A_{r-2}), A_r)$ を計算し、その値を返します。
 
 計算量： $\mathcal O(\log^2 size())$
 

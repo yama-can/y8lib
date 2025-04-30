@@ -142,10 +142,6 @@ public:
 		{
 			return now != other.now;
 		}
-		operator bool() const
-		{
-			return now != nullptr;
-		}
 		operator T *() const
 		{
 			return &now->raw_value;
@@ -245,8 +241,12 @@ public:
 
 	void erase(size_t pos)
 	{
-		node *now = root;
-		find_node(now, pos);
+		erase(find(pos));
+	}
+
+	void erase(iterator it)
+	{
+		node *now = it.now;
 		while (now->subtree_size > 1)
 		{
 			if (now->left)

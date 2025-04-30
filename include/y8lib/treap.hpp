@@ -14,7 +14,7 @@ class Treap
 
 	node *root;
 
-	RandomEngine random_engine{0x000000004c746d9f, 0x00000000c1af15ae};
+	RandomEngine random_engine;
 
 	inline void find_node(node *&now, size_t pos) const
 	{

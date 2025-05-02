@@ -154,9 +154,9 @@ namespace y8lib
 				node *now = this->now;
 				while (now)
 				{
-					if (now->parent && now->parent->left == now)
+					if (now->parent && now->parent->right == now)
 					{
-						pos += now->parent->right ? now->parent->right->subtree_size + 1 : 1;
+						pos += now->parent->left ? now->parent->left->subtree_size + 1 : 1;
 					}
 					now = now->parent;
 				}

@@ -50,6 +50,87 @@ namespace y8lib
 			assert(now && pos == 0);
 		}
 
+		void reheap(node *&now)
+		{
+			if (now->left && now->priority > now->left->priority)
+			{
+				node *left = now->left;
+				if (!now->parent)
+					root = left;
+				else if (now->parent->left == now)
+					now->parent->left = left;
+				else
+					now->parent->right = left;
+				left->parent = now->parent;
+				now->parent = left;
+				now->left = left->right;
+				if (left->right)
+					left->right->parent = now;
+				left->right = now;
+				now->subtree_size = 1 + (now->left ? now->left->subtree_size : 0) + (now->right ? now->right->subtree_size : 0);
+				now->value = op(op(now->left ? now->left->value : e(), now->raw_value), now->right ? now->right->value : e());
+				now = left;
+			}
+			else if (now->right && now->priority > now->right->priority)
+			{
+				node *right = now->right;
+				if (!now->parent)
+					root = right;
+				else if (now->parent->left == now)
+					now->parent->left = right;
+				else
+					now->parent->right = right;
+				right->parent = now->parent;
+				now->parent = right;
+				now->right = right->left;
+				if (right->left)
+					right->left->parent = now;
+				right->left = now;
+				now->subtree_size = 1 + (now->left ? now->left->subtree_size : 0) + (now->right ? now->right->subtree_size : 0);
+				now->value = op(op(now->left ? now->left->value : e(), now->raw_value), now->right ? now->right->value : e());
+				now = right;
+			}
+			now->subtree_size = 1 + (now->left ? now->left->subtree_size : 0) + (now->right ? now->right->subtree_size : 0);
+			now->value = op(op(now->left ? now->left->value : e(), now->raw_value), now->right ? now->right->value : e());
+			now = now->parent;
+		}
+
+		void merge_right(node *root, node *&other)
+		{
+			if (!other)
+			{
+				return;
+			}
+			node *right = root->right;
+			if (!right)
+			{
+				root->right = other;
+				other->parent = root;
+				other = nullptr;
+				node *now = root->right;
+				while (now)
+				{
+					reheap(now);
+				}
+				return;
+			}
+			root->right = other;
+			other->parent = root;
+			node *now = root;
+			while (now->right)
+			{
+				now = now->right;
+			}
+			now->right = right;
+			right->parent = now;
+			now = now->right;
+			while (now)
+			{
+				reheap(now);
+			}
+			other = nullptr;
+		}
+
 	public:
 		using value_type = T;
 		using size_type = size_t;
@@ -150,8 +231,8 @@ namespace y8lib
 			{
 				if (!now)
 					return treap->size();
-				size_t pos = 0;
 				node *now = this->now;
+				size_t pos = now->left ? now->left->subtree_size : 0;
 				while (now)
 				{
 					if (now->parent && now->parent->right == now)
@@ -212,47 +293,7 @@ namespace y8lib
 			assert(now);
 			while (now)
 			{
-				if (now->left && now->priority > now->left->priority)
-				{
-					node *left = now->left;
-					if (!now->parent)
-						root = left;
-					else if (now->parent->left == now)
-						now->parent->left = left;
-					else
-						now->parent->right = left;
-					left->parent = now->parent;
-					now->parent = left;
-					now->left = left->right;
-					if (left->right)
-						left->right->parent = now;
-					left->right = now;
-					now->subtree_size = 1 + (now->left ? now->left->subtree_size : 0) + (now->right ? now->right->subtree_size : 0);
-					now->value = op(op(now->left ? now->left->value : e(), now->raw_value), now->right ? now->right->value : e());
-					now = left;
-				}
-				else if (now->right && now->priority > now->right->priority)
-				{
-					node *right = now->right;
-					if (!now->parent)
-						root = right;
-					else if (now->parent->left == now)
-						now->parent->left = right;
-					else
-						now->parent->right = right;
-					right->parent = now->parent;
-					now->parent = right;
-					now->right = right->left;
-					if (right->left)
-						right->left->parent = now;
-					right->left = now;
-					now->subtree_size = 1 + (now->left ? now->left->subtree_size : 0) + (now->right ? now->right->subtree_size : 0);
-					now->value = op(op(now->left ? now->left->value : e(), now->raw_value), now->right ? now->right->value : e());
-					now = right;
-				}
-				now->subtree_size = 1 + (now->left ? now->left->subtree_size : 0) + (now->right ? now->right->subtree_size : 0);
-				now->value = op(op(now->left ? now->left->value : e(), now->raw_value), now->right ? now->right->value : e());
-				now = now->parent;
+				reheap(now);
 			}
 		}
 
@@ -264,37 +305,125 @@ namespace y8lib
 		void erase(iterator it)
 		{
 			node *now = it.now;
-			while (now->subtree_size > 1)
+			if (!now->left)
 			{
-				if (now->left)
+				if (now->parent)
 				{
-					std::swap(now->left->raw_value, now->raw_value);
-					now = now->left;
+					if (now->parent->left == now)
+						now->parent->left = now->right;
+					else
+						now->parent->right = now->right;
 				}
 				else
 				{
-					std::swap(now->right->raw_value, now->raw_value);
-					now = now->right;
+					root = now->right;
 				}
-			}
-			if (now == root)
-			{
+				if (now->right)
+					now->right->parent = now->parent;
+				node *tmp = now->right ? now->right : now->parent;
 				delete now;
-				root = nullptr;
+				while (tmp)
+				{
+					reheap(tmp);
+				}
 				return;
 			}
-			if (now->parent->left == now)
-				now->parent->left = nullptr;
-			else
-				now->parent->right = nullptr;
-			node *top = now->parent;
-			delete now;
-			while (top)
+			node *right = now->left;
+			while (right->right)
 			{
-				top->subtree_size = 1 + (top->left ? top->left->subtree_size : 0) + (top->right ? top->right->subtree_size : 0);
-				top->value = op(op(top->left ? top->left->value : e(), top->raw_value), top->right ? top->right->value : e());
-				top = top->parent;
+				right = right->right;
 			}
+			right->right = now->right;
+			if (now->right)
+				now->right->parent = right;
+			if (now->parent)
+			{
+				if (now->parent->left == now)
+					now->parent->left = now->left;
+				else
+					now->parent->right = now->left;
+			}
+			else
+			{
+				root = now->left;
+			}
+			now->left->parent = now->parent;
+			delete now;
+			while (right)
+			{
+				reheap(right);
+			}
+		}
+
+		void merge(size_t pos, Treap &&other)
+		{
+			if (!root)
+			{
+				root = other.root;
+				other.root = nullptr;
+				return;
+			}
+			if (!other.root)
+			{
+				return;
+			}
+			node *now = root;
+			if (pos != 0)
+			{
+				find_node(now, --pos);
+				merge_right(now, other.root);
+			}
+			else
+			{
+				while (now->left)
+				{
+					now = now->left;
+				}
+				now->left = other.root;
+				other.root->parent = now;
+				while (now)
+				{
+					reheap(now);
+				}
+			}
+		}
+
+		Treap split(size_t l, size_t r)
+		{
+			assert(0 <= l && l <= r && r <= size());
+			Treap result;
+			if (l == r)
+			{
+				return result;
+			}
+			result.insert(0, *find(l));
+			erase(l++);
+			std::vector<node *> erase_nodes;
+			while (l != r)
+			{
+				node *now = root;
+				find_node(now, l);
+				if (now->subtree_size != 1)
+				{
+					result.insert(result.size(), now->raw_value);
+					erase_nodes.push_back(now);
+					l++;
+				}
+				else
+				{
+					while (now->parent && now->parent->subtree_size + l <= r)
+					{
+						now = now->parent;
+					}
+					result.merge_right(result.root, now);
+					l += now->subtree_size;
+				}
+			}
+			for (node *v : erase_nodes)
+			{
+				erase(iterator(this, v));
+			}
+			return result;
 		}
 
 		T prod(size_t l, size_t r) const
@@ -305,10 +434,15 @@ namespace y8lib
 			{
 				node *now = root;
 				find_node(now, l);
-				if (now->subtree_size == 1 || l + now->subtree_size > r)
+				if (now->subtree_size != 1)
 				{
 					val = op(val, now->raw_value);
 					l++;
+					if (now->right && now->right->subtree_size + l <= r)
+					{
+						val = op(val, now->right->value);
+						l += now->right->subtree_size;
+					}
 				}
 				else
 				{

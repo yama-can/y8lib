@@ -10,8 +10,42 @@ public:
 	Treap();
 	void insert(size_t pos, T value);
 	void erase(size_t pos);
+	void erase(iterator it);
 	T prod(size_t l, size_t r) const;
+	void merge(size_t pos, Treap &&other);
+	Treap split(size_t l, size_t r);
+	iterator begin();
+	iterator end();
+	iterator find(size_t pos);
 	size_t size() const;
+
+	class iterator
+	{
+		Treap *treap;
+		node *now;
+		iterator(Treap *treap, node *now);
+		friend class Treap;
+
+	public:
+		iterator() = delete;
+		iterator(const iterator &other) = default;
+		iterator &operator=(const iterator &other) = default;
+		iterator(iterator &&other) = default;
+		iterator &operator=(iterator &&other) = default;
+		~iterator() = default;
+		iterator &operator++();
+		iterator operator++(int);
+		iterator &operator--();
+		iterator operator--(int);
+		T &operator*();
+		const T &operator*() const;
+		T *operator->();
+		const T *operator->() const;
+		bool operator==(const iterator &other) const;
+		bool operator!=(const iterator &other) const;
+		size_t indexof() const;
+		long long operator-(iterator other) const;
+	};
 };
 ```
 
@@ -49,3 +83,14 @@ $prod(l, r)$ を実行すると、 $op(op(op(op(A_l, A_{l + 1}), A_{l + 2})\cdot
 ### $size()$
 
 計算量： $\mathcal O(1)$
+
+## $split(l, r)$
+
+新しく $[l, r)$ の範囲を含む Treap オブジェクトを作成します。
+また、元の Treap オブジェクトの内容は $[0, l)$ と $[r, N)$ をつなげたものになります。
+
+## $merge(pos, other)$
+
+Treap オブジェクト $other$ を $other_0$ が $pos$ 番目になるように Treap オブジェクトに追加します。
+`std::move` をしてから $other$ を渡す必要があります。
+実行後の $other$ の内容は未定義です。

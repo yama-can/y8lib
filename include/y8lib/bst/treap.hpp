@@ -227,7 +227,7 @@ namespace y8lib
 			{
 				return now != other.now;
 			}
-			size_t indexof()
+			size_t indexof() const
 			{
 				if (!now)
 					return treap->size();
@@ -243,7 +243,7 @@ namespace y8lib
 				}
 				return pos;
 			}
-			long long operator-(iterator other)
+			long long operator-(iterator other) const
 			{
 				assert(treap == other.treap);
 				return indexof() - other.indexof();

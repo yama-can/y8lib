@@ -457,6 +457,24 @@ namespace y8lib
 			return val;
 		}
 
+		T get(size_t pos) const
+		{
+			node *now = root;
+			find_node(now, pos);
+			return now->value;
+		}
+
+		void set(size_t pos, T value)
+		{
+			node *now = root;
+			find_node(now, pos);
+			now->raw_value = value;
+			while (now)
+			{
+				reheap(now);
+			}
+		}
+
 		iterator begin()
 		{
 			node *now = root;
